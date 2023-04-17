@@ -11,9 +11,6 @@ import { Theme, ThemeSelectorItem } from '../models';
 import { getConfigFromApi, getSelectedTheme, getSelectedThemeName } from '../shared';
 
 import { ColorIcon } from './ColorIcon';
-import { ThemeStory } from './ThemeStory';
-
-const iframeId = 'storybook-preview-iframe';
 
 const createThemeSelectorItem = memoize(1000)(
   (
@@ -127,9 +124,6 @@ export class ThemeSelector extends Component<ThemeToolProps, ThemeToolState> {
 
     return items.length ? (
       <Fragment>
-        {!decorator && (
-          <ThemeStory iframeId={iframeId} selectedTheme={selectedTheme} target={target} themes={themes} />
-        )}
         <WithTooltip
           placement="top"
           trigger="click"
