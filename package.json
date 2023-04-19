@@ -5,9 +5,9 @@
   "keywords": [
     "storybook-addons"
   ],
-  "homepage": "https://github.com/tonai/storybook-addon-themes",
+  "homepage": "https://github.com/kitsu-io-forks/storybook-addon-themes",
   "bugs": {
-    "url": "https://github.com/tonai/storybook-addon-themes/issues"
+    "url": "https://github.com/kitsu-io-forks/storybook-addon-themes/issues"
   },
   "repository": {
     "type": "git",
