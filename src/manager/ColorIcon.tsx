@@ -1,14 +1,13 @@
 import { styled } from '@storybook/theming';
 
 export const ColorIcon = styled.span(
-  ({ background }: { background: string }) => ({
-    borderRadius: '1rem',
+  ({ background }: { background?: string }) => ({
+    borderRadius: '1em',
     display: 'block',
-    height: '1rem',
-    width: '1rem',
+    height: '1em',
+    width: '1em',
+    boxSizing: 'border-box',
+    border: `1px solid currentColor`,
     background,
-  }),
-  ({ theme }) => ({
-    boxShadow: `${theme.appBorderColor} 0 0 0 1px inset`,
   })
 );

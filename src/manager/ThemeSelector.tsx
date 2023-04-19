@@ -1,148 +1,87 @@
-import React, { Component, Fragment } from 'react';
-import memoize from 'memoizerific';
+import React, { useCallback } from 'react';
 
-import { API } from '@storybook/api';
-import { SET_STORIES } from '@storybook/core-events';
+import { useGlobals, useParameter } from '@storybook/manager-api';
 
-import { Icons, IconButton, WithTooltip, TooltipLinkList } from '@storybook/components';
+import {
+  Icons,
+  IconButton,
+  WithTooltip,
+  TooltipLinkList,
+} from '@storybook/components';
 
-import { CHANGE, DECORATOR, THEME } from '../constants';
-import { Theme, ThemeSelectorItem } from '../models';
-import { getConfigFromApi, getSelectedTheme, getSelectedThemeName } from '../shared';
+import { PARAM_KEY } from '../constants';
+import { Theme, Config, DEFAULT_CONFIG } from '../Config';
 
 import { ColorIcon } from './ColorIcon';
 
-const createThemeSelectorItem = memoize(1000)(
-  (
-    id: string,
-    title: string,
-    color: string,
-    hasSwatch: boolean,
-    change: (arg: { selected: string; expanded: boolean }) => void,
-    active: boolean,
-  ): ThemeSelectorItem => ({
-    id,
-    title,
-    onClick: () => {
-      change({ selected: id, expanded: false });
-    },
-    value: id,
-    right: hasSwatch ? <ColorIcon background={color} /> : undefined,
-    active,
-  })
-);
-
-const getDisplayableState = memoize(10)(
-  (props: ThemeToolProps, state: ThemeToolState, change) => {
-    const { clearable, list, target, default: defaultTheme } = getConfigFromApi(props.api);
-    const selectedThemeName = getSelectedThemeName(list, defaultTheme, state.selected);
-
-    let availableThemeSelectorItems: ThemeSelectorItem[] = [];
-    let selectedTheme: Theme;
-
-    if (selectedThemeName !== 'none' && clearable) {
-      availableThemeSelectorItems.push(
-        createThemeSelectorItem('none', 'Clear theme', 'transparent', null, change, false)
-      );
-    }
-
-    if (list.length) {
-      availableThemeSelectorItems = [
-        ...availableThemeSelectorItems,
-        ...list.map(({ color, name }) =>
-          createThemeSelectorItem(name, name, color, true, change, name === selectedThemeName)
-        ),
-      ];
-      selectedTheme = getSelectedTheme(list, selectedThemeName);
-    }
-
-    return {
-      items: availableThemeSelectorItems,
-      selectedTheme,
-      themes: list,
-      target,
-    };
-  }
-);
-
-interface ThemeToolProps {
-  api: API;
-}
-
-interface ThemeToolState {
-  decorator: boolean,
+const ThemeSelectorList = ({
+  items,
+  selected,
+  onChange,
+}: {
+  items: Theme[];
   selected: string;
-  expanded: boolean;
-}
+  onChange: (selected: string | null) => void;
+}) => {
+  const links = items.map((item) => ({
+    key: item.value,
+    id: item.value ?? item.name,
+    title: item.name,
+    value: item.value,
+    onClick: () => onChange(item.value),
+    right: item.color ? <ColorIcon background={item.color} /> : undefined,
+    active: item.value === selected,
+  }));
 
-export class ThemeSelector extends Component<ThemeToolProps, ThemeToolState> {
-  state: ThemeToolState = {
-    decorator: false,
-    selected: null,
-    expanded: false,
-  };
+  return <TooltipLinkList links={links} />;
+};
 
-  private setStories = () => this.setState({ selected: null });
+const useConfig = () => useParameter<Config>(PARAM_KEY, DEFAULT_CONFIG);
 
-  private setTheme = (theme: string) => this.setState({ selected: theme });
-
-  private setDecorator = () => this.setState({ decorator: true });
-
-  componentDidMount() {
-    const { api } = this.props;
-    api.on(SET_STORIES, this.setStories);
-    api.on(THEME, this.setTheme);
-    api.on(DECORATOR, this.setDecorator);
+export function ThemeSelector() {
+  const config = useConfig();
+  const [globals, updateGlobals] = useGlobals();
+  const [expanded, setExpanded] = React.useState(false);
+  const onChange = useCallback(
+    (value: string | null) => {
+      updateGlobals({
+        [PARAM_KEY]: value,
+      });
+    },
+    [updateGlobals]
+  );
+  const themes = [...(config.options ?? [])];
+  if (config.clearable) {
+    themes.unshift({ name: 'Clear Theme', value: null });
   }
 
-  componentWillUnmount() {
-    const { api } = this.props;
-    api.off(SET_STORIES, this.setStories);
-    api.off(THEME, this.setTheme);
-    api.off(DECORATOR, this.setDecorator);
-  }
+  const selected = themes.find((theme) => theme.value === globals[PARAM_KEY]);
 
-  change = (args: { selected: string; expanded: boolean }) => {
-    const { selected } = args;
-    const { api } = this.props;
-    const { list, onChange } = getConfigFromApi(api);
-    this.setState(args);
-    api.emit(CHANGE, selected);
-    if (typeof onChange === 'function') {
-      const selectedTheme = getSelectedTheme(list, selected);
-      onChange(selectedTheme);
-    }
-  };
-
-  render() {
-    const { decorator, expanded } = this.state;
-    const { items, selectedTheme, target, themes } = getDisplayableState(
-      this.props,
-      this.state,
-      this.change
-    );
-
-    return items.length ? (
-      <Fragment>
-        <WithTooltip
-          placement="top"
-          trigger="click"
-          tooltipShown={expanded}
-          onVisibilityChange={(newVisibility: boolean) =>
-            this.setState({ expanded: newVisibility })
-          }
-          tooltip={<TooltipLinkList links={items} />}
-          closeOnClick
-        >
-          <IconButton
-            key="theme"
-            active={selectedTheme}
-            title="Change the theme of the preview"
-          >
-            <Icons icon="photo" />
-          </IconButton>
-        </WithTooltip>
-      </Fragment>
-    ) : null;
-  }
+  return (
+    <WithTooltip
+      placement="top"
+      trigger="click"
+      tooltipShown={expanded}
+      onVisibleChange={(newVisibility: boolean) => {
+        console.log('newVisibility', newVisibility);
+        setExpanded(newVisibility);
+      }}
+      tooltip={
+        <ThemeSelectorList
+          items={themes}
+          selected={globals[PARAM_KEY]}
+          onChange={onChange}
+        />
+      }
+      closeOnClick
+    >
+      <IconButton
+        key="theme"
+        active={expanded}
+        title="Change the theme of the preview"
+      >
+        <ColorIcon background={selected?.color} />
+      </IconButton>
+    </WithTooltip>
+  );
 }
