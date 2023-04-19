@@ -1,0 +1,42 @@
+[data-theme='light'] {
+  background-color: #fff;
+}
+[data-theme='dark'] {
+  background-color: #777;
+}
+[data-theme='oled'] {
+  background-color: #000;
+}
+
+.storybook-button {
+  --color: #222;
+  font-family: 'Nunito Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 700;
+  border: 0;
+  border-radius: 3em;
+  cursor: pointer;
+  display: inline-block;
+  line-height: 1;
+  font-size: 16px;
+  padding: 12px 24px;
+}
+
+[data-theme='light'] .storybook-button {
+  --color: #185e95;
+}
+[data-theme='dark'] .storybook-button {
+  --color: #3d95d1;
+}
+[data-theme='oled'] .storybook-button {
+  --color: #c4ddf6;
+}
+
+.storybook-button--primary {
+  color: white;
+  background-color: var(--color);
+}
+.storybook-button--secondary {
+  color: var(--color);
+  background-color: transparent;
+  border: 1px solid var(--color);
+}
