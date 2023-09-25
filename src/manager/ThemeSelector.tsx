@@ -68,11 +68,7 @@ export function ThemeSelector() {
     <WithTooltip
       placement="top"
       trigger="click"
-      tooltipShown={expanded}
-      onVisibleChange={(newVisibility: boolean) => {
-        console.log('newVisibility', newVisibility);
-        setExpanded(newVisibility);
-      }}
+      onVisibleChange={setExpanded}
       tooltip={
         <ThemeSelectorList
           items={themes}
@@ -80,7 +76,7 @@ export function ThemeSelector() {
           onChange={onChange}
         />
       }
-      closeOnClick
+      closeOnOutsideClick
     >
       <IconButton
         key="theme"
