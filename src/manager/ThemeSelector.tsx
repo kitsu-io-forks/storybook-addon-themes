@@ -10,7 +10,7 @@ import {
 } from '@storybook/components';
 
 import { PARAM_KEY } from '../constants';
-import { Theme, Config, DEFAULT_CONFIG } from '../Config';
+import { Theme, Config, DEFAULT_CONFIG, getDefaultTheme } from '../config';
 
 import { ColorIcon } from './ColorIcon';
 
@@ -50,9 +50,16 @@ export function ThemeSelector() {
     },
     [updateGlobals]
   );
+
   const themes = [...(config.options ?? [])];
+
   if (config.clearable) {
     themes.unshift({ name: 'Clear Theme', value: null });
+  }
+
+  if (globals[PARAM_KEY] === false) {
+    const defaultTheme = getDefaultTheme(config);
+    onChange(defaultTheme);
   }
 
   const selected = themes.find((theme) => theme.value === globals[PARAM_KEY]);
